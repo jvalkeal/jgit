@@ -27,4 +27,4 @@ jobs:
       - name: build
         shell: bash
         run: |
-          mvn verify
+          mvn -B verify
