@@ -1,0 +1,35 @@
+name: ci
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-refname:
+        description: Enter git refname to build
+        required: true
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - nickname: win
+            os: windows-2022
+          - nickname: macos
+            os: macos-12
+          - nickname: linux
+            os: ubuntu-22.04
+    name: Compile ${{ matrix.nickname }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.build-refname }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: build
+        shell: bash
+        run: |
+          mvn -B verify
