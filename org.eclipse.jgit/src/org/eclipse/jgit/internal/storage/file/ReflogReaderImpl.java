@@ -31,13 +31,15 @@ class ReflogReaderImpl implements ReflogReader {
 	private File logName;
 
 	/**
-	 * @param db
+	 * @param repo
 	 *            repository to read reflogs from
 	 * @param refname
 	 *            {@code Ref} name
 	 */
-	ReflogReaderImpl(Repository db, String refname) {
-		logName = new File(db.getDirectory(), Constants.LOGS + '/' + refname);
+	ReflogReaderImpl(Repository repo, String refname) {
+		File logBaseDir = refname.equals("HEAD") ? repo.getDirectory() //$NON-NLS-1$
+				: repo.getCommonDirectory();
+		logName = new File(logBaseDir, Constants.L_LOGS + refname);
 	}
 
 	/* (non-Javadoc)

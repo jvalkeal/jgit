@@ -113,8 +113,11 @@ public abstract class Repository implements AutoCloseable {
 
 	final AtomicLong closedAt = new AtomicLong();
 
-	/** Metadata directory holding the repository's critical files. */
+	/** $GIT_DIR: metadata directory holding the repository's critical files. */
 	private final File gitDir;
+
+	/** $GIT_COMMON_DIR: metadata directory holding the common repository's critical files.  */
+	private final File gitCommonDir;
 
 	/** File abstraction used to resolve paths. */
 	private final FS fs;
@@ -137,6 +140,7 @@ public abstract class Repository implements AutoCloseable {
 	 */
 	protected Repository(BaseRepositoryBuilder options) {
 		gitDir = options.getGitDir();
+		gitCommonDir = options.getGitCommonDir();
 		fs = options.getFS();
 		workTree = options.getWorkTree();
 		indexFile = options.getIndexFile();
@@ -218,6 +222,16 @@ public abstract class Repository implements AutoCloseable {
 	 * @since 5.4
 	 */
 	public abstract String getIdentifier();
+
+	/**
+	 * Get common dir.
+	 *
+	 * @return $GIT_COMMON_DIR: local common metadata directory;
+	 * @since 5.10
+	 */
+	public File getCommonDirectory() {
+		return gitCommonDir;
+	}
 
 	/**
 	 * Get the object database which stores this repository's data.
@@ -1311,16 +1325,19 @@ public abstract class Repository implements AutoCloseable {
 			return RepositoryState.REBASING_INTERACTIVE;
 
 		// From 1.6 onwards
-		if (new File(getDirectory(),"rebase-apply/rebasing").exists()) //$NON-NLS-1$
+		if (new File(getDirectory(), Constants.R_REBASE_APPLY + "rebasing") //$NON-NLS-1$
+				.exists())
 			return RepositoryState.REBASING_REBASING;
-		if (new File(getDirectory(),"rebase-apply/applying").exists()) //$NON-NLS-1$
+		if (new File(getDirectory(), Constants.R_REBASE_APPLY + "applying") //$NON-NLS-1$
+				.exists())
 			return RepositoryState.APPLY;
-		if (new File(getDirectory(),"rebase-apply").exists()) //$NON-NLS-1$
+		if (new File(getDirectory(), Constants.REBASE_APPLY).exists())
 			return RepositoryState.REBASING;
 
-		if (new File(getDirectory(),"rebase-merge/interactive").exists()) //$NON-NLS-1$
+		if (new File(getDirectory(), Constants.R_REBASE_MERGE + "interactive") //$NON-NLS-1$
+				.exists())
 			return RepositoryState.REBASING_INTERACTIVE;
-		if (new File(getDirectory(),"rebase-merge").exists()) //$NON-NLS-1$
+		if (new File(getDirectory(), Constants.REBASE_MERGE).exists())
 			return RepositoryState.REBASING_MERGE;
 
 		// Both versions
@@ -1337,7 +1354,7 @@ public abstract class Repository implements AutoCloseable {
 			return RepositoryState.MERGING;
 		}
 
-		if (new File(getDirectory(), "BISECT_LOG").exists()) //$NON-NLS-1$
+		if (new File(getDirectory(), Constants.BISECT_LOG).exists())
 			return RepositoryState.BISECTING;
 
 		if (new File(getDirectory(), Constants.CHERRY_PICK_HEAD).exists()) {
