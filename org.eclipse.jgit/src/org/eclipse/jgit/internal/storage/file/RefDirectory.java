@@ -16,8 +16,10 @@ package org.eclipse.jgit.internal.storage.file;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.eclipse.jgit.lib.Constants.HEAD;
 import static org.eclipse.jgit.lib.Constants.LOGS;
+import static org.eclipse.jgit.lib.Constants.LOGS_REFS;
 import static org.eclipse.jgit.lib.Constants.OBJECT_ID_STRING_LENGTH;
 import static org.eclipse.jgit.lib.Constants.PACKED_REFS;
+import static org.eclipse.jgit.lib.Constants.REFS;
 import static org.eclipse.jgit.lib.Constants.R_HEADS;
 import static org.eclipse.jgit.lib.Constants.R_REFS;
 import static org.eclipse.jgit.lib.Constants.R_TAGS;
@@ -122,7 +124,7 @@ public class RefDirectory extends RefDatabase {
 
 	private final FileRepository parent;
 
-	private final File gitDir;
+	private final File gitCommonDir;
 
 	final File refsDir;
 
@@ -187,7 +189,7 @@ public class RefDirectory extends RefDatabase {
 
 	RefDirectory(RefDirectory refDb) {
 		parent = refDb.parent;
-		gitDir = refDb.gitDir;
+		gitCommonDir = refDb.gitCommonDir;
 		refsDir = refDb.refsDir;
 		logsDir = refDb.logsDir;
 		logsRefsDir = refDb.logsRefsDir;
@@ -203,11 +205,11 @@ public class RefDirectory extends RefDatabase {
 	RefDirectory(FileRepository db) {
 		final FS fs = db.getFS();
 		parent = db;
-		gitDir = db.getDirectory();
-		refsDir = fs.resolve(gitDir, R_REFS);
-		logsDir = fs.resolve(gitDir, LOGS);
-		logsRefsDir = fs.resolve(gitDir, LOGS + '/' + R_REFS);
-		packedRefsFile = fs.resolve(gitDir, PACKED_REFS);
+		gitCommonDir = db.getCommonDirectory();
+		refsDir = fs.resolve(gitCommonDir, REFS);
+		logsDir = fs.resolve(gitCommonDir, LOGS);
+		logsRefsDir = fs.resolve(gitCommonDir, LOGS_REFS);
+		packedRefsFile = fs.resolve(gitCommonDir, PACKED_REFS);
 
 		looseRefs.set(RefList.<LooseRef> emptyList());
 		packedRefs.set(NO_PACKED_REFS);
@@ -1329,7 +1331,7 @@ public class RefDirectory extends RefDatabase {
 			name = name.substring(R_REFS.length());
 			return new File(refsDir, name);
 		}
-		return new File(gitDir, name);
+		return new File(gitCommonDir, name);
 	}
 
 	static int levelsIn(String name) {
